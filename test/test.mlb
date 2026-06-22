@@ -1,0 +1,11 @@
+(* Test executable basis: the semver library (which pulls in the vendored
+ * sml-parsec) plus the harness, vectors and runner. *)
+$(SML_LIB)/basis/basis.mlb
+../src/semver.mlb
+harness.sml
+support.sml
+test_parse.sml
+test_compare.sml
+test_range.sml
+entry.sml
+main.sml
