@@ -14,6 +14,19 @@ struct
 
   exception Semver of string
 
+  (* Parse an all-digit string as a non-negative `int`, bounded to the portable
+     signed 32-bit range (2^31 - 1) so the result fits `int` and is identical on
+     MLton and Poly/ML, whose default `int` types are fixed-width (32-bit and
+     63-bit here). Goes through `IntInf` and returns NONE when the value exceeds
+     that range, rather than raising `Overflow` under MLton on an oversized
+     version number. *)
+  local val maxNat : IntInf.int = 2147483647 (* 2^31 - 1 *) in
+    fun natFromDigits s =
+      case IntInf.fromString s of
+          SOME n => if n >= 0 andalso n <= maxNat then SOME (IntInf.toInt n) else NONE
+        | NONE   => NONE
+  end
+
   (* ---- version parsing (CharParsec grammar) --------------------------- *)
 
   local
@@ -37,9 +50,9 @@ struct
       digitsP >>= (fn s =>
         if String.size s > 1 andalso String.sub (s, 0) = #"0"
         then fail "numeric identifier must not have a leading zero"
-        else case Int.fromString s of
+        else case natFromDigits s of
                SOME n => return n
-             | NONE => fail "invalid numeric identifier")
+             | NONE => fail "numeric identifier out of range")
 
     (* a single dot-separated prerelease identifier: alphanumerics and
        hyphens; a purely numeric one must not carry a leading zero. *)
@@ -98,8 +111,12 @@ struct
   fun compareIdent (x, y) =
     case (allDigits x, allDigits y) of
       (true, true) =>
-        LargeInt.compare (valOf (LargeInt.fromString x),
-                          valOf (LargeInt.fromString y))
+        (* `LargeInt` is arbitrary precision, so this never overflows; the `_`
+           arm is unreachable given `allDigits`, but is handled totally so no
+           unchecked `valOf` sits here. *)
+        (case (LargeInt.fromString x, LargeInt.fromString y) of
+             (SOME a, SOME b) => LargeInt.compare (a, b)
+           | _ => String.compare (x, y))
     | (true, false) => LESS
     | (false, true) => GREATER
     | (false, false) => String.compare (x, y)
@@ -190,9 +207,9 @@ struct
         | toPart s =
             if s = "x" orelse s = "X" orelse s = "*" then Wild
             else if List.all Char.isDigit (String.explode s) then
-              (case Int.fromString s of
+              (case natFromDigits s of
                  SOME n => Num n
-               | NONE => raise Semver ("bad number: " ^ s))
+               | NONE => raise Semver ("number out of range: " ^ s))
             else raise Semver ("bad version field: " ^ s)
       val (mj, mn, pt) =
         case fields of

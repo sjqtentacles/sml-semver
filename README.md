@@ -11,8 +11,11 @@ byte-identically under both [MLton](http://mlton.org/) and
 
 ## Status
 
-- 164 assertions, green on MLton and Poly/ML with byte-identical output.
+- 169 assertions, green on MLton and Poly/ML with byte-identical output.
 - Basis-library only; deterministic across compilers.
+- Numeric version fields are bounded to the portable signed-32-bit range and
+  rejected gracefully beyond it, so an oversized version parses identically on
+  both compilers instead of raising `Overflow` under MLton's fixed-width `int`.
 - Vendors `sml-parsec` (Layout B), so the repo builds standalone.
 - Validated against canonical vectors:
   - The SemVer spec §11 precedence chain

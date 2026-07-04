@@ -61,5 +61,23 @@ struct
         invalid
 
     ; Harness.section "parse: parseExn raises on invalid"
-    ; Harness.checkRaises "parseExn \"nope\"" (fn () => S.parseExn "nope") )
+    ; Harness.checkRaises "parseExn \"nope\"" (fn () => S.parseExn "nope")
+
+    (* Oversized numeric fields: the old code did an unchecked `Int.fromString`,
+       which raised `Overflow` under MLton's 32-bit `int` on a large version
+       number (while Poly/ML's wider 63-bit `int` accepted it) -- a crash and a
+       cross-compiler divergence. Numeric fields are now bounded to the
+       portable signed-32-bit range and rejected gracefully (and identically)
+       beyond it. *)
+    ; Harness.section "parse: large numeric fields bounded, never crash"
+    ; Harness.checkBool "accept 2147483647.0.0 (max supported)"
+        (true, Option.isSome (S.parse "2147483647.0.0"))
+    ; Harness.checkBool "reject 2147483648.0.0 (2^31)"
+        (true, not (Option.isSome (S.parse "2147483648.0.0")))
+    ; Harness.checkBool "reject 9999999999.0.0 (10 digits)"
+        (true, not (Option.isSome (S.parse "9999999999.0.0")))
+    ; Harness.checkBool "parse never raises on huge input"
+        (true, (ignore (S.parse "99999999999999999999.0.0"); true) handle _ => false)
+    ; Harness.checkBool "parseRange never raises on huge number"
+        (true, (ignore (S.parseRange "9999999999.0.0"); true) handle _ => false) )
 end
