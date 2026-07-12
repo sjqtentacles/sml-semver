@@ -1,11 +1,26 @@
 (* Test executable basis: the semver library (which pulls in the vendored
  * sml-parsec) plus the harness, vectors and runner. *)
 $(SML_LIB)/basis/basis.mlb
+
+(* sml-check is a TEST-only dependency: the sml-semver library itself is
+   dependency-free of it (see ../src/semver.mlb), and only the
+   property-test section needs it. Include order for the flat Poly/ML `use`
+   model (tools/polybuild): sml-prng -> sml-test (check.sig references
+   Test.test in its toTest bridge) -> sml-check -> our own Harness -> the
+   library under test -> the suite + entry/main shims. *)
+../lib/github.com/sjqtentacles/sml-prng/prng.sig
+../lib/github.com/sjqtentacles/sml-prng/prng.sml
+../lib/github.com/sjqtentacles/sml-test/test.sig
+../lib/github.com/sjqtentacles/sml-test/test.sml
+../lib/github.com/sjqtentacles/sml-check/check.sig
+../lib/github.com/sjqtentacles/sml-check/check.sml
+
 ../src/semver.mlb
 harness.sml
 support.sml
 test_parse.sml
 test_compare.sml
 test_range.sml
+test_properties.sml
 entry.sml
 main.sml

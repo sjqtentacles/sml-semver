@@ -5,6 +5,7 @@ fun runAllSuites () =
   ; ParseTests.run ()
   ; CompareTests.run ()
   ; RangeTests.run ()
+  ; PropertyTests.run ()
   ; Harness.run () )
 
 fun main () =
