@@ -1,5 +1,7 @@
 # sml-semver
 
+[![CI](https://github.com/sjqtentacles/sml-semver/actions/workflows/ci.yml/badge.svg)](https://github.com/sjqtentacles/sml-semver/actions/workflows/ci.yml)
+
 [Semantic Versioning 2.0.0](https://semver.org) in pure Standard ML: version
 parsing, precedence comparison (spec §11), and npm/[node-semver](https://github.com/npm/node-semver)-style
 range/constraint matching (`^`, `~`, `>=`, `>`, `<`, `<=`, `=`, `x`/`*`
